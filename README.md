@@ -1,159 +1,232 @@
-# ResearchAI
+# ResearchAI — AI-Native Trading Research Assistant
 
-**From vague trading questions to testable evidence.**
+ResearchAI is a small AI-native trading research prototype that helps users move from a vague market question to a structured, testable experiment.
 
-ResearchAI is an AI-assisted trading research application that helps users turn natural-language trading questions into clearly defined, reproducible historical experiments.
+The core workflow is:
 
-The application combines AI-assisted research framing with historical NIFTY 50 market data to investigate hypotheses and evaluate results.
+**ASK → CLARIFY → DEFINE → TEST → LEARN**
 
-> **Disclaimer:** ResearchAI is a research and experimentation tool. It does not provide financial advice, guaranteed trading strategies, or predictions of future market performance.
-
----
-
-## Features
-
-* Ask trading research questions in natural language
-* AI-assisted clarification and research framing
-* Define explicit experiment parameters
-* Test historical NIFTY 50 market data
-* Configure:
-
-  * Fall threshold
-  * Holding period
-  * Historical test period
-  * Entry timing
-* Calculate:
-
-  * Number of qualifying trades
-  * Win rate
-  * Average return
-  * Total return
-  * Best trade
-  * Worst trade
-* View individual trade details
-* Visualize trade returns using charts
-* Perform robustness checks across multiple fall thresholds
-* Explain limitations and research considerations
+Instead of directly answering a trading question, ResearchAI makes important assumptions explicit, allows the user to clarify them, runs a small historical experiment, and presents the evidence along with its limitations.
 
 ---
 
-## Research Workflow
+## Live Demo
 
-The application follows a five-step research process:
+**Deployed Application:**
+https://research-ai-beige.vercel.app/
 
-**Ask → Clarify → Define → Test → Learn**
+**GitHub Repository:**
+https://github.com/Kashishghuliani/research-ai
 
-### 1. Ask
+---
 
-The user enters a trading research question such as:
+## Problem
 
-> Does buying NIFTY after a sharp fall work?
+A question such as:
 
-### 2. Clarify
+> "Does buying NIFTY after a sharp fall work?"
 
-The application helps identify the assumptions and parameters required to make the question testable.
+sounds simple, but it is incomplete.
 
-### 3. Define
+What is a "sharp fall"?
 
-The experiment is explicitly defined using parameters such as:
+* 1%?
+* 3%?
+* 5%?
+
+When should the position be entered?
+
+* Same day's close?
+* Next day's open?
+* Next day's close?
+
+How long should it be held?
+
+* 1 day?
+* 5 days?
+* 10 days?
+
+How much historical data should be tested?
+
+A system that silently chooses these parameters can produce a result that looks precise but is based on arbitrary assumptions.
+
+ResearchAI treats this ambiguity as part of the research problem.
+
+---
+
+# Product Approach
+
+The prototype follows five stages.
+
+### 1. ASK
+
+The user enters a natural-language research question.
+
+Example:
+
+> "Does buying NIFTY after a sharp fall work?"
+
+The question is sent to the AI analysis layer.
+
+The AI identifies the research intent, relevant experiment structure, assumptions, and missing information.
+
+---
+
+### 2. CLARIFY
+
+If important information is missing, ResearchAI does not blindly assume it.
+
+The user can define:
 
 * Fall threshold
 * Entry timing
 * Holding period
 * Test period
 
-### 4. Test
-
-The application retrieves historical NIFTY 50 data and evaluates qualifying historical events.
-
-### 5. Learn
-
-The results are presented through statistics, trade-level details, charts, interpretation, and robustness checks.
-
----
-
-## Experiment Definition
-
-A qualifying event is defined as:
-
-**Today's intraday low compared with the previous trading day's close.**
-
-For example, if the previous trading day's close was 25,000 and the current day's low was 24,250:
+For example:
 
 ```text
-Fall = (24,250 - 25,000) / 25,000 × 100
-     = -3%
+Fall threshold: 3%
+Entry: Next day's open
+Holding period: 10 trading days
+Test period: 1 year
 ```
 
-A 3% fall threshold therefore qualifies this event.
-
-The experiment can use different entry timings:
-
-* Same day's close
-* Next day's open
-* Next day's close
-
-The position is exited after the selected number of trading days at the closing price.
+This makes the experiment explicit before any numerical result is generated.
 
 ---
 
-## Robustness Check
+### 3. DEFINE
 
-ResearchAI can compare multiple fall thresholds while keeping the other experiment parameters fixed.
+The system converts the research question into a structured experiment.
 
-The current comparison uses:
+Example:
 
 ```text
-1%
-2%
-3%
-5%
+Market: NIFTY 50
+
+Condition:
+Intraday low is at least 3% below the previous
+trading day's close.
+
+Entry:
+Next day's open.
+
+Exit:
+Close after 10 trading days.
+
+Test period:
+1 year.
+
+Hypothesis:
+Buying after a significant market decline may
+produce positive subsequent returns.
 ```
 
-This helps determine whether the observed result depends heavily on a particular threshold.
+The user can review the experiment before running it.
 
 ---
 
-## Data Source
+### 4. TEST
 
-Historical market data is retrieved from **Yahoo Finance**.
+The prototype runs a historical experiment using daily NIFTY 50 market data.
 
-Market:
+The backtest:
+
+1. Retrieves historical NIFTY 50 data.
+2. Identifies qualifying market-fall events.
+3. Applies the selected entry rule.
+4. Applies the selected holding period.
+5. Calculates the resulting return.
+6. Aggregates the results into summary statistics.
+
+The prototype reports metrics such as:
+
+* Number of trades
+* Winning trades
+* Losing trades
+* Win rate
+* Average return
+* Total return
+* Best trade
+* Worst trade
+
+---
+
+### 5. LEARN
+
+The results are presented separately from the interpretation.
+
+The application explains:
+
+### What the data shows
+
+The numerical observations generated by the experiment.
+
+### What we can reasonably conclude
+
+A cautious interpretation based on the sample size and results.
+
+### What could invalidate the result
+
+Potential limitations such as:
+
+* Small sample size
+* Transaction costs
+* Slippage
+* Different parameter choices
+* Changing market conditions
+* Historical performance not guaranteeing future performance
+
+### What should be investigated next
+
+The prototype also provides a robustness investigation by comparing multiple fall thresholds while keeping other experiment parameters fixed.
+
+---
+
+# Architecture
 
 ```text
-NIFTY 50
+                    ┌──────────────────────┐
+                    │      User Question   │
+                    └──────────┬───────────┘
+                               │
+                               ▼
+                    ┌──────────────────────┐
+                    │   Next.js Frontend   │
+                    │                      │
+                    │ ASK → CLARIFY        │
+                    │ → DEFINE → TEST      │
+                    │ → LEARN              │
+                    └───────┬───────┬──────┘
+                            │       │
+                 ┌──────────┘       └──────────┐
+                 ▼                             ▼
+        ┌─────────────────┐          ┌─────────────────┐
+        │ /api/analyze    │          │ /api/backtest   │
+        │                 │          │                 │
+        │ LLM-based       │          │ Historical data │
+        │ question        │          │ + experiment    │
+        │ interpretation  │          │ calculations    │
+        └─────────────────┘          └────────┬────────┘
+                                             │
+                                             ▼
+                                   ┌──────────────────┐
+                                   │ Experiment       │
+                                   │ Results          │
+                                   └────────┬─────────┘
+                                            │
+                                            ▼
+                                   ┌──────────────────┐
+                                   │ /api/compare     │
+                                   │                  │
+                                   │ Robustness check │
+                                   └──────────────────┘
 ```
-
-Data type:
-
-```text
-Historical market data
-```
-
-The application uses daily:
-
-* Open
-* High
-* Low
-* Close
-
-prices.
 
 ---
 
-## Tech Stack
-
-* Next.js
-* React
-* JavaScript
-* Tailwind CSS
-* Recharts
-* Yahoo Finance historical market data
-* OpenRouter API
-
----
-
-## Project Structure
+# Project Structure
 
 ```text
 research-ai/
@@ -161,10 +234,16 @@ research-ai/
 ├── app/
 │   ├── api/
 │   │   ├── analyze/
+│   │   │   └── route.js
+│   │   │
 │   │   ├── backtest/
+│   │   │   └── route.js
+│   │   │
 │   │   └── compare/
+│   │       └── route.js
 │   │
-│   └── page.js
+│   ├── page.js
+│   └── globals.css
 │
 ├── components/
 │   ├── StepIndicator.js
@@ -174,56 +253,310 @@ research-ai/
 │   ├── Results.js
 │   └── Comparison.js
 │
-├── public/
-│
-├── .env.local
-├── .gitignore
 ├── package.json
+├── .gitignore
 └── README.md
 ```
 
 ---
 
-## Getting Started
+# Technology Stack
 
-### 1. Clone the repository
+### Frontend
+
+* Next.js
+* React
+* JavaScript
+* Tailwind CSS
+
+### Visualization
+
+* Recharts
+
+### AI
+
+* LLM API for natural-language research-question analysis
+
+### Market Data
+
+* Yahoo Finance historical NIFTY 50 daily data
+
+### Deployment
+
+* Vercel
+
+---
+
+# Key Design Decisions
+
+## 1. AI does not control the numerical result
+
+The AI is responsible for interpreting the user's natural-language question and helping structure the research problem.
+
+The numerical backtest is handled separately.
+
+This separation reduces the risk of an AI model inventing market results.
+
+---
+
+## 2. Important assumptions are visible
+
+The system does not silently choose important trading parameters.
+
+Instead, the user can explicitly define:
+
+```text
+Fall threshold
+Entry timing
+Holding period
+Test period
+```
+
+This makes the experiment easier to understand and reproduce.
+
+---
+
+## 3. Ambiguity is treated as a product feature
+
+The original question is intentionally incomplete.
+
+Rather than treating missing information as an error, ResearchAI turns the ambiguity into a clarification step.
+
+This is central to the product's design.
+
+---
+
+## 4. Evidence is separated from interpretation
+
+The application distinguishes between:
+
+**What happened in the historical data**
+
+and
+
+**What we can reasonably conclude from it.**
+
+This is important because a positive historical result does not automatically establish a reliable trading edge.
+
+---
+
+## 5. Robustness is part of the workflow
+
+After the initial experiment, the user can compare several fall thresholds.
+
+The comparison keeps:
+
+* Holding period
+* Test period
+* Entry timing
+
+fixed while changing:
+
+* Fall threshold
+
+This provides a simple first robustness check rather than relying on a single parameter choice.
+
+---
+
+# Experiment Definition
+
+The current prototype defines a sharp fall as:
+
+```text
+Today's intraday low compared with
+the previous trading day's close.
+```
+
+For a fall threshold of 3%:
+
+```text
+Today's low <= Previous close × 0.97
+```
+
+The experiment then enters according to the selected entry timing and exits after the selected number of trading days.
+
+---
+
+# Return Calculation
+
+For each qualifying trade:
+
+```text
+Return =
+(Exit Price - Entry Price)
+-------------------------- × 100
+       Entry Price
+```
+
+The prototype then aggregates individual trade returns to calculate the summary metrics displayed in the UI.
+
+---
+
+# Data and Research Limitations
+
+This is a prototype rather than a production-grade trading research system.
+
+The current experiment does **not** model:
+
+* Brokerage costs
+* Taxes
+* Slippage
+* Liquidity constraints
+* Market impact
+* Bid/ask spreads
+
+Therefore, the displayed historical returns should not be interpreted as directly tradable returns.
+
+Other important limitations include:
+
+* Small samples can produce unstable conclusions.
+* Different definitions of "sharp fall" can produce different results.
+* Different holding periods can produce different results.
+* Historical relationships may not persist.
+* Testing many parameters can lead to overfitting.
+* Historical performance does not guarantee future performance.
+
+---
+
+# AI Usage
+
+AI tools were used as development and reasoning partners.
+
+### ChatGPT
+
+Used for:
+
+* Architecture discussion
+* Code review
+* Debugging
+* Identifying edge cases
+* Improving UI wording
+* Reviewing experiment logic
+* Preparing documentation and submission materials
+
+### LLM API
+
+Used inside the application to:
+
+* Interpret natural-language research questions
+* Identify experiment components
+* Identify missing information
+* Help structure the research hypothesis
+
+AI-generated suggestions were reviewed and modified rather than blindly copied.
+
+The key product decisions — especially making ambiguity explicit and separating AI interpretation from numerical backtesting — were intentionally incorporated into the final design.
+
+---
+
+# What I Would Improve With More Time
+
+### 1. Better statistical analysis
+
+Add:
+
+* Confidence intervals
+* Median returns
+* Standard deviation
+* Maximum drawdown
+* Risk-adjusted metrics
+* Bootstrap analysis
+
+### 2. Transaction-cost modeling
+
+Allow users to specify:
+
+```text
+Brokerage
+Taxes
+Slippage
+```
+
+and calculate net returns.
+
+### 3. Out-of-sample testing
+
+Separate historical data into training and testing periods to reduce the risk of overfitting.
+
+### 4. Walk-forward testing
+
+Evaluate whether a discovered relationship remains stable across different time periods.
+
+### 5. Market regime analysis
+
+Compare results across:
+
+* High-volatility periods
+* Low-volatility periods
+* Bull markets
+* Bear markets
+* Sideways markets
+
+### 6. Experiment history
+
+Allow users to save and compare previous experiments.
+
+### 7. Better statistical evidence
+
+Instead of relying primarily on win rate and average return, the system could provide statistical significance and uncertainty estimates.
+
+### 8. Data abstraction
+
+Introduce a dedicated market-data service so that the data provider can be replaced without changing the experiment logic.
+
+### 9. Automated tests
+
+Add unit and integration tests covering:
+
+* Fall-event detection
+* Entry timing
+* Exit indexing
+* Return calculations
+* Parameter validation
+* API responses
+
+---
+
+# Running Locally
+
+## 1. Clone the repository
 
 ```bash
-git clone YOUR_GITHUB_REPOSITORY_URL
+git clone https://github.com/Kashishghuliani/research-ai.git
 cd research-ai
 ```
 
-### 2. Install dependencies
+## 2. Install dependencies
 
 ```bash
 npm install
 ```
 
-### 3. Create environment variables
+## 3. Create environment variables
 
-Create a file named:
+Create:
 
 ```text
 .env.local
 ```
 
-Add:
+Add the required API key:
 
-```env
-OPENROUTER_API_KEY=YOUR_API_KEY_HERE
+```text
+OPENROUTER_API_KEY=your_api_key_here
 ```
 
-Replace `YOUR_API_KEY_HERE` with your OpenRouter API key.
+Do not commit `.env.local` to GitHub.
 
-**Do not commit `.env.local` to GitHub.**
+The repository's `.gitignore` excludes environment files.
 
-### 4. Start the development server
+## 4. Start the development server
 
 ```bash
 npm run dev
 ```
 
-Open:
+Then open:
 
 ```text
 http://localhost:3000
@@ -231,34 +564,45 @@ http://localhost:3000
 
 ---
 
-## Important Notes
+# Example Research Question
 
-### Historical Data
+Try:
 
-The backtest uses historical NIFTY 50 daily market data. Historical observations do not guarantee future results.
+```text
+Does buying NIFTY after a sharp fall work?
+```
 
-### Transaction Costs
+The intended journey is:
 
-The current experiment does not model all real-world trading costs, including:
-
-* Brokerage
-* Taxes
-* Slippage
-* Liquidity constraints
-* Market impact
-
-### Sample Size
-
-A small number of qualifying historical events should not be treated as strong evidence of a persistent trading edge.
-
-### Research Interpretation
-
-The purpose of the application is to encourage explicit assumptions, reproducible experiments, and critical evaluation rather than selecting parameters solely because they produce favourable results.
+```text
+ASK
+  ↓
+CLARIFY
+  ↓
+DEFINE
+  ↓
+TEST
+  ↓
+LEARN
+```
 
 ---
 
-## Disclaimer
+# Disclaimer
 
-ResearchAI is an educational and research-oriented software project.
+ResearchAI is an educational research prototype.
 
-The results generated by this application are historical observations and should not be interpreted as investment advice, financial recommendations, guaranteed returns, or predictions of future market performance.
+It is not financial advice, an investment recommendation, or a guarantee of future trading performance.
+
+The results generated by the prototype describe historical observations under the selected assumptions and should be interpreted accordingly.
+
+---
+
+## Author
+
+**Kashish Ghuliani**
+
+B.Tech — Computer Science
+
+GitHub:
+https://github.com/Kashishghuliani/research-ai
