@@ -1,36 +1,264 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# ResearchAI
+
+**From vague trading questions to testable evidence.**
+
+ResearchAI is an AI-assisted trading research application that helps users turn natural-language trading questions into clearly defined, reproducible historical experiments.
+
+The application combines AI-assisted research framing with historical NIFTY 50 market data to investigate hypotheses and evaluate results.
+
+> **Disclaimer:** ResearchAI is a research and experimentation tool. It does not provide financial advice, guaranteed trading strategies, or predictions of future market performance.
+
+---
+
+## Features
+
+* Ask trading research questions in natural language
+* AI-assisted clarification and research framing
+* Define explicit experiment parameters
+* Test historical NIFTY 50 market data
+* Configure:
+
+  * Fall threshold
+  * Holding period
+  * Historical test period
+  * Entry timing
+* Calculate:
+
+  * Number of qualifying trades
+  * Win rate
+  * Average return
+  * Total return
+  * Best trade
+  * Worst trade
+* View individual trade details
+* Visualize trade returns using charts
+* Perform robustness checks across multiple fall thresholds
+* Explain limitations and research considerations
+
+---
+
+## Research Workflow
+
+The application follows a five-step research process:
+
+**Ask → Clarify → Define → Test → Learn**
+
+### 1. Ask
+
+The user enters a trading research question such as:
+
+> Does buying NIFTY after a sharp fall work?
+
+### 2. Clarify
+
+The application helps identify the assumptions and parameters required to make the question testable.
+
+### 3. Define
+
+The experiment is explicitly defined using parameters such as:
+
+* Fall threshold
+* Entry timing
+* Holding period
+* Test period
+
+### 4. Test
+
+The application retrieves historical NIFTY 50 data and evaluates qualifying historical events.
+
+### 5. Learn
+
+The results are presented through statistics, trade-level details, charts, interpretation, and robustness checks.
+
+---
+
+## Experiment Definition
+
+A qualifying event is defined as:
+
+**Today's intraday low compared with the previous trading day's close.**
+
+For example, if the previous trading day's close was 25,000 and the current day's low was 24,250:
+
+```text
+Fall = (24,250 - 25,000) / 25,000 × 100
+     = -3%
+```
+
+A 3% fall threshold therefore qualifies this event.
+
+The experiment can use different entry timings:
+
+* Same day's close
+* Next day's open
+* Next day's close
+
+The position is exited after the selected number of trading days at the closing price.
+
+---
+
+## Robustness Check
+
+ResearchAI can compare multiple fall thresholds while keeping the other experiment parameters fixed.
+
+The current comparison uses:
+
+```text
+1%
+2%
+3%
+5%
+```
+
+This helps determine whether the observed result depends heavily on a particular threshold.
+
+---
+
+## Data Source
+
+Historical market data is retrieved from **Yahoo Finance**.
+
+Market:
+
+```text
+NIFTY 50
+```
+
+Data type:
+
+```text
+Historical market data
+```
+
+The application uses daily:
+
+* Open
+* High
+* Low
+* Close
+
+prices.
+
+---
+
+## Tech Stack
+
+* Next.js
+* React
+* JavaScript
+* Tailwind CSS
+* Recharts
+* Yahoo Finance historical market data
+* OpenRouter API
+
+---
+
+## Project Structure
+
+```text
+research-ai/
+│
+├── app/
+│   ├── api/
+│   │   ├── analyze/
+│   │   ├── backtest/
+│   │   └── compare/
+│   │
+│   └── page.js
+│
+├── components/
+│   ├── StepIndicator.js
+│   ├── QuestionInput.js
+│   ├── ExperimentCard.js
+│   ├── ClarificationForm.js
+│   ├── Results.js
+│   └── Comparison.js
+│
+├── public/
+│
+├── .env.local
+├── .gitignore
+├── package.json
+└── README.md
+```
+
+---
 
 ## Getting Started
 
-First, run the development server:
+### 1. Clone the repository
+
+```bash
+git clone YOUR_GITHUB_REPOSITORY_URL
+cd research-ai
+```
+
+### 2. Install dependencies
+
+```bash
+npm install
+```
+
+### 3. Create environment variables
+
+Create a file named:
+
+```text
+.env.local
+```
+
+Add:
+
+```env
+OPENROUTER_API_KEY=YOUR_API_KEY_HERE
+```
+
+Replace `YOUR_API_KEY_HERE` with your OpenRouter API key.
+
+**Do not commit `.env.local` to GitHub.**
+
+### 4. Start the development server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open:
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+```text
+http://localhost:3000
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## Important Notes
 
-To learn more about Next.js, take a look at the following resources:
+### Historical Data
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The backtest uses historical NIFTY 50 daily market data. Historical observations do not guarantee future results.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Transaction Costs
 
-## Deploy on Vercel
+The current experiment does not model all real-world trading costs, including:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+* Brokerage
+* Taxes
+* Slippage
+* Liquidity constraints
+* Market impact
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Sample Size
+
+A small number of qualifying historical events should not be treated as strong evidence of a persistent trading edge.
+
+### Research Interpretation
+
+The purpose of the application is to encourage explicit assumptions, reproducible experiments, and critical evaluation rather than selecting parameters solely because they produce favourable results.
+
+---
+
+## Disclaimer
+
+ResearchAI is an educational and research-oriented software project.
+
+The results generated by this application are historical observations and should not be interpreted as investment advice, financial recommendations, guaranteed returns, or predictions of future market performance.
